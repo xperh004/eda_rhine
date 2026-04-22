@@ -1,5 +1,7 @@
 getwd()
 
+install.packages('gitcreds')
+gitcreds_set()
 
 dir.create('.data')
 dir.create('./data/raw')

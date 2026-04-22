@@ -1,0 +1,158 @@
+---
+title: "Hydroclimatic Changes in the Rhine Basin: An Exploratory Data Analysis"
+author: "Helena Barros"
+date: "2026-04-13"
+output:
+  html_document:
+    toc: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, 
+                      fig.show = 'asis', dev = 'png')
+knitr::opts_knit$set(root.dir = '../../')
+```
+
+```{r libraries}
+library(data.table)
+library(ggplot2)
+```
+
+## Introduction
+
+In 2001, Middelkoop and colleagues published a landmark study predicting the impacts of climate change on the Rhine basin. Their main hypothesis was that global warming would lead to higher winter river discharge due to intensified snowmelt and increased winter precipitation, and lower summer discharge due to reduced snow storage and increased evapotranspiration.
+
+More than two decades have passed since that study. The objective of this exploratory data analysis is to investigate whether these predicted changes are actually occurring across the Rhine basin using observed discharge data from 17 monitoring stations.
+
+## The Data
+
+The dataset consists of daily river discharge records from 17 stations distributed across the Rhine basin, ranging from the Alpine headwaters to the river mouth near the North Sea. The records span different time periods, with some stations dating back to the early 19th century.
+
+```{r data}
+runoff_day <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_day.rds')
+runoff_stations <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_stations.rds')
+runoff_summary <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_summary.rds')
+runoff_winter <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_winter.rds')
+runoff_summer <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_summer.rds')
+runoff_winter_key <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_winter_key.rds')
+runoff_summer_key <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_summer_key.rds')
+runoff_month_key <- readRDS('C:/Users/leleb/Downloads/eda_class/eda_rhine/data/runoff_month_key.rds')
+
+colset_4 <- c("#D35C37", "#BF9A77", "#D6C6B9", "#97B8C2")
+```
+
+### Station Data Availability
+
+The figure below shows the period of available data for each monitoring station. Most stations provide records covering at least 60 years, with several extending back over 150 years, giving us a strong basis for detecting long-term trends.
+
+```{r timeline, fig.width=10, fig.height=6}
+station_time <- runoff_day[, .(start = min(year(date)),
+                               end = max(year(date))),
+                           by = sname]
+
+ggplot(station_time, aes(x = start, xend = end, y = sname, yend = sname)) +
+  geom_segment(linewidth = 2, col = colset_4[4]) +
+  theme_bw() +
+  xlab('Year') +
+  ylab('Station') +
+  ggtitle('Period of available discharge data per station')
+```
+
+### Overview of Discharge Records
+
+The following figure shows the full discharge time series for all 17 stations. The data reveals considerable variability both within and between stations, with upstream Alpine stations showing much lower absolute discharge values than downstream stations near the river mouth.
+
+```{r timeseries, fig.width=12, fig.height=8}
+ggplot(runoff_day, aes(x = date, y = value)) +
+  geom_line(col = colset_4[4]) +
+  facet_wrap(~sname, scales = 'free') +
+  theme_bw() +
+  xlab('Year') +
+  ylab('Discharge (m³/s)') +
+  ggtitle('Daily discharge time series for all Rhine stations')
+```
+
+## Are Middelkoop's Predictions Coming True?
+
+To test the hypothesis, we focus on three representative stations spanning the river from the Alpine headwaters to the lowland reaches:
+
+- **DOMA** — upstream Alpine station (623m altitude, 3,229 km² catchment)
+- **BASR** — mid-river station (294m altitude, 35,897 km² catchment)  
+- **KOEL** — downstream lowland station (35m altitude, 144,232 km² catchment)
+
+### Seasonal Changes Before and After 2000
+
+The boxplots below compare winter and summer discharge at the three key stations before and after 2000. According to Middelkoop et al., we would expect to see higher winter discharge and lower summer discharge in the post-2000 period.
+
+```{r seasonal, fig.width=10, fig.height=6}
+year_thres <- 2000
+
+runoff_winter_key[year < year_thres, period := factor('pre_2000')]
+runoff_winter_key[year >= year_thres, period := factor('aft_2000')]
+runoff_summer_key[year < year_thres, period := factor('pre_2000')]
+runoff_summer_key[year >= year_thres, period := factor('aft_2000')]
+
+to_plot <- rbind(cbind(runoff_winter_key, season = factor('winter')),
+                 cbind(runoff_summer_key, season = factor('summer')))
+
+ggplot(to_plot, aes(season, value, fill = period)) +
+  geom_boxplot() +
+  facet_wrap(~sname, scales = 'free_y') +
+  scale_fill_manual(values = colset_4[c(4, 1)]) +
+  xlab('Season') +
+  ylab('Discharge (m³/s)') +
+  ggtitle('Winter vs summer discharge before and after 2000') +
+  theme_bw()
+```
+
+The results show a clear shift in the expected direction, winter discharge has increased while summer discharge has decreased across all three stations. The changes are most pronounced at the upstream Alpine station DOMA.
+
+### Long-term Trends in Summer Discharge
+
+To better understand when these changes occurred, we apply both linear and loess regression to the summer discharge time series since 1950.
+
+```{r summer_trend, fig.width=10, fig.height=5}
+ggplot(runoff_summer_key[year >= 1950], aes(x = year, y = value)) +
+  geom_line(col = colset_4[3]) +
+  geom_point(col = colset_4[3]) +
+  facet_wrap(~sname, scales = 'free') +
+  geom_smooth(method = 'lm', formula = y~x, se = 0, col = colset_4[1]) +
+  geom_smooth(method = 'loess', formula = y~x, se = 0, col = colset_4[4]) +
+  xlab('Year') +
+  ylab('Discharge (m³/s)') +
+  ggtitle('Summer discharge trends 1950-2016 (red = linear, blue = loess)') +
+  theme_bw()
+```
+
+### Long-term Trends in Winter Discharge
+
+```{r winter_trend, fig.width=10, fig.height=5}
+ggplot(runoff_winter_key[year >= 1950], aes(x = year, y = value)) +
+  geom_line(col = colset_4[3]) +
+  geom_point(col = colset_4[3]) +
+  facet_wrap(~sname, scales = 'free') +
+  geom_smooth(method = 'lm', formula = y~x, se = 0, col = colset_4[1]) +
+  geom_smooth(method = 'loess', formula = y~x, se = 0, col = colset_4[4]) +
+  xlab('Year') +
+  ylab('Discharge (m³/s)') +
+  ggtitle('Winter discharge trends 1950-2016 (red = linear, blue = loess)') +
+  theme_bw()
+```
+
+The loess regression reveals that the changes are not strictly linear. Summer discharge at DOMA declined sharply between 1930 and 1980 and has remained relatively stable since. Winter discharge shows more complex patterns, with an increase during 1950-1980 followed by a steady decrease at most locations.
+
+## Conclusions
+
+The exploratory data analysis of Rhine discharge records provides partial support for the predictions of Middelkoop et al. (2001):
+
+- **Winter discharge** has increased at all three key stations when comparing pre and post-2000 periods, consistent with the predicted increase due to intensified snowmelt and winter precipitation.
+- **Summer discharge** has decreased across all stations, consistent with the predicted reduction due to increased evapotranspiration and reduced snow storage.
+- However, much of the observed shift appears to have occurred **before 2000**, suggesting the changes may have begun earlier than Middelkoop's study period.
+- The loess regression reveals **non-linear trends** that a simple linear analysis would miss, highlighting the importance of using appropriate statistical methods.
+
+These findings confirm that hydroclimatic changes in the Rhine basin are indeed occurring, though the timing and magnitude differ somewhat from the original predictions. Further analysis incorporating temperature data, precipitation records, and longer post-2000 datasets would strengthen these conclusions.
+
+## References
+
+Middelkoop, H., et al. (2001). Impact of Climate Change on Hydrological Regimes and Water Resources Management in the Rhine Basin. *Climatic Change*, 49, 105-128.

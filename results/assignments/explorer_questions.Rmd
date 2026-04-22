@@ -1,0 +1,98 @@
+---
+title: "EDA Explorer Questions"
+author: "Helena Barros"
+date: "2026-04-13"
+output: html_document
+---
+
+## Session 02 — Sharpening the Axe
+
+**Q1: How big is the Rhine catchment?**
+
+The Rhine catchment area is approximately 185,000 km², spanning nine countries from the Swiss Alps to the North Sea.
+
+**Q2: Rainfall runoff calculation**
+
+If it rained 0.5mm/hour for one full day over the whole catchment and all water reached the river, the increase in average runoff would be approximately 25,694 m³/s.
+
+**Q4: Other hydroclimatic changes in Middelkoop et al.**
+
+Beyond winter/summer discharge changes, the paper also reports increased peak flood frequencies in winter, earlier snowmelt in spring due to warming temperatures, changes in groundwater recharge patterns, and increased evapotranspiration in summer due to higher temperatures.
+
+**Q5: Three assumptions made by Middelkoop et al.**
+
+1. Climate models are accurate enough to reliably project future temperature and precipitation
+2. The relationship between climate and runoff remains constant (no changes in land use or vegetation)
+3. CO2 emissions will continue to increase following the assumed scenario
+
+**Q6: Why did Middelkoop et al. do this study?**
+
+The Rhine is one of Europe's most important rivers, used for drinking water, shipping, agriculture and hydropower by millions of people across multiple countries. Water managers and policy makers needed scientific predictions to plan for future changes. The study was also pioneering in combining climate and hydrological models, influencing a generation of similar research.
+
+**Q7: Other similar studies**
+
+Several studies have conducted similar analyses. For the Rhine specifically, Arnell (1999) examined climate change impacts on European river flows, and Te Linde et al. (2010) studied future flood risks in the Rhine basin. At a broader scale, Arnell (2003) analysed global climate change impacts on river runoff, and Lehner et al. (2006) examined future drought and flood frequencies across Europe.
+
+**Q8: News evidence of low/high flow events since 2000**
+
+Yes, several notable events have occurred. In 2003 and 2018 extreme droughts caused record low water levels severely disrupting shipping. In 2021 major flooding caused devastating damage in Germany and Belgium. These events support Middelkoop's predictions of more extreme flow events in both directions.
+
+---
+
+## Session 03 — Sailing Away
+
+**Q1: Units for area and runoff**
+
+Area is measured in km² (square kilometers) and runoff is measured in m³/s (cubic meters per second).
+
+**Q2: Average catchment area and runoff**
+
+According to the data, the average catchment area across all stations is 74,490 km² and the average daily runoff is 1,373 m³/s.
+
+**Q3: Average runoff at each station**
+
+See accompanying script assignment2_explorer.R for the bar chart showing mean runoff per station. REES and LOBI have the highest mean runoff as they are near the river mouth, while DOMA has the lowest as it is a small mountain catchment.
+
+**Q4: Relationship between altitude and catchment area**
+
+There is a clear negative relationship, higher altitude stations have smaller catchment areas. This makes physical sense because high altitude stations are near the river source in the Alps and drain only a small mountain area, while low altitude stations are near the mouth and collect water from the entire basin above them.
+
+---
+
+## Session 04 — In Open Sea
+
+**Q1: Difference between median and 0.5 quantile**
+
+There is no difference. The median and the 0.5 quantile are exactly the same thing, both represent the value that splits the data exactly in half.
+
+**Q2: Why are median and mean not the same for Rhine runoff?**
+
+Rhine runoff is skewed to the right due to extreme flood events. A small number of very high flood values pull the mean upward, while the median stays closer to the typical everyday flow. This is reflected in the positive skewness values calculated for all stations.
+
+**Q3: Strange behaviour of LOBI and REES**
+
+Both stations are at very low altitude (9m and 8m) and located close to each other near the river mouth. Surprisingly LOBI has a slightly higher mean runoff than REES despite REES having a larger catchment area. This may be because LOBI is slightly downstream of REES capturing additional tributary inflow, or there are differences in measurement methodology between the two stations.
+
+**Q4: Months/seasons/years with highest and lowest runoff**
+
+See accompanying script assignment3_explorer.R. Notable findings include October 1947 appearing as the lowest month for many downstream stations (a severe post-war European drought), and 1999 appearing as the highest month for many upstream stations (a major flood year).
+
+---
+
+## Session 05 — Land Ho!
+
+**Q1: Is DOMA a representative station?**
+
+No, DOMA is not representative of the Rhine as a whole. It is a tiny mountain catchment (3,229 km²) at 623m altitude whose runoff is dominated by snowmelt rather than rainfall, peaking in spring/summer unlike downstream stations. It is also influenced by a nearby water reservoir. Its coefficient of variation (0.829) and skewness (2.192) were the highest of all stations, indicating highly irregular and unpredictable flow.
+
+**Q2: Precipitation analysis**
+
+See accompanying script assignment4_explorer.R. The seasonal boxplot shows winter precipitation has slightly increased after 2000 while summer precipitation remains similar, supporting Middelkoop's predictions. The regression plot shows an overall slight decreasing trend in annual precipitation since 1950, with a more dramatic decline after 2010.
+
+**Q3: Thoughts on Rhine runoff changes**
+
+The EDA suggests Middelkoop's predictions are partially supported. Winter runoff shows a slight increasing trend while summer runoff has been declining, particularly at upstream stations. However the changes are not as clear cut as predicted, much of the shift appears to have occurred before 2000. The loess regression revealed non-linear changes that vary significantly between upstream mountain stations like DOMA and downstream stations like KOEL.
+
+**Q4: Future analyses and factors to examine**
+
+Temperature data should be included since evapotranspiration is a key driver of summer runoff decline. Land use changes in the catchment could affect rainfall to runoff conversion. Longer post-2000 data would give a clearer picture of recent trends. Statistical significance testing would confirm whether observed changes are real or natural variability. Groundwater levels should also be examined as they interact closely with river discharge.
